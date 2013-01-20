@@ -83,6 +83,7 @@ package CPANci::Installer {
                     }
 
                     $deps{$working_on[-1]}{$key} = 0;
+                    pop @working_on;
                 }
                 when ( m{Successfully installed (?<dist>.+)$} ) { 
                     $deps{$working_on[-1]}{install} = 1;
