@@ -8,10 +8,11 @@ package CPANci::Fetcher {
     use URI;
     use JSON::XS;
     use Data::Dumper;
+
+    with 'CPANci::Role::UA';
     
     has rss_base  => ( required => 1, isa => 'Str', is => 'ro' );
     has api_base  => ( required => 1, isa => 'Str', is => 'ro' );
-    has ua        => ( required => 0, init_arg => undef, lazy_build => 1, is => 'ro' );
     has mongo     => ( required => 0, init_arg => undef, lazy_build => 1, is => 'ro' );
     has mongo_cfg => ( required => 1, isa => 'HashRef', is => 'ro' );
     
@@ -47,13 +48,7 @@ package CPANci::Fetcher {
         
         return MongoDB::Connection->new( %$cfg );
     }
-    
-    sub _build_ua { 
-        my $self = shift;
-        
-        return LWP::UserAgent->new( agent => 'CPANci/' . $CPANci::VERSION );
-    }
-
+ 
 }
 
 1;
