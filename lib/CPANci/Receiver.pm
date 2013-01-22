@@ -1,5 +1,6 @@
 package CPANci::Receiver { 
     use Dancer;
+    use MongoDB;
 
     any qr{.+} => sub {
         return "Hello, world"
@@ -7,5 +8,7 @@ package CPANci::Receiver {
 
 
 }
+
+dance;
 
 1;
