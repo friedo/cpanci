@@ -6,9 +6,9 @@ package CPANci::Receiver {
         return "Hello, world"
     };
 
+    dance;
 
 }
 
-dance;
 
 1;
