@@ -8,6 +8,7 @@ package CPANci::Fetcher {
     use URI;
     use JSON::XS;
     use Data::Dumper;
+    use POSIX;
 
     with 'CPANci::Role::UA';
     
@@ -35,7 +36,8 @@ package CPANci::Fetcher {
             
             next if $data;
             
-            print "fetching metadata: $dist\n";
+            my $ts = strftime "[%Y-%m-%d] %H:%M:%S ", localtime;
+            print $ts, "fetching metadata: $dist\n";
             my $fetched_data = decode_json $self->ua->get( $dist )->decoded_content;
             $fetched_data->{_id} = 'cpan/' . $name;
             $coll->insert( $fetched_data );
