@@ -11,12 +11,10 @@ package CPANci::Fetcher {
     use POSIX;
 
     with 'CPANci::Role::UA';
-    
+    with 'CPANci::Role::MongoDB';    
+
     has rss_base  => ( required => 1, isa => 'Str', is => 'ro' );
     has api_base  => ( required => 1, isa => 'Str', is => 'ro' );
-    has mongo     => ( required => 0, init_arg => undef, lazy_build => 1, is => 'ro' );
-    has mongo_cfg => ( required => 1, isa => 'HashRef', is => 'ro' );
-    
 
     sub run {
         my $self = shift;
@@ -42,15 +40,7 @@ package CPANci::Fetcher {
             $fetched_data->{_id} = 'cpan/' . $name;
             $coll->insert( $fetched_data );
         }
-    }
-    
-    sub _build_mongo { 
-        my $self = shift;
-        my $cfg = $self->mongo_cfg;
-        
-        return MongoDB::Connection->new( %$cfg );
-    }
- 
+    } 
 }
 
 1;
