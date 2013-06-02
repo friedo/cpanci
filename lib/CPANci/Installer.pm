@@ -1,7 +1,5 @@
-use v5.16;
 
 package CPANci::Installer { 
-    
     use Moose;
     use CPANci;
     use Cwd;
@@ -9,19 +7,28 @@ package CPANci::Installer {
     use JSON::XS;
     use IPC::Open3;
     use Symbol 'gensym';
-    use File::Temp 'tempfile';
+    use File::Temp 'tempfile', 'tempdir';
     use File::Spec::Functions 'catdir', 'catfile';
     use TAP::Parser;
     use Data::Dumper;
     use autodie;
+    use boolean;
+
+    use strict;
+    use warnings;
+    use feature ':5.18';
+    no warnings 'experimental';
+    
 
     with 'CPANci::Role::UA';
+    with 'CPANci::Role::MongoDB';
 
     has perls   => ( required => 1, is => 'ro', isa => 'ArrayRef', lazy_build => 1 );
-    has home    => ( required => 1, is => 'ro', isa => 'Str', default => "/home/cpanci" );
-    has master  => ( required => 1, is => 'ro', isa => 'Str', default => "/home/cpanci/perl5/perlbrew/perls/master/bin/perl" );
-    has cpanm   => ( required => 1, is => 'ro', isa => 'Str', default => "/home/cpanci/perl5/perlbrew/perls/master/bin/cpanm" );
-    has pldir   => ( required => 1, is => 'ro', isa => 'Str', default => "/home/cpanci/perl5/perlbrew/perls" );
+    has home    => ( required => 1, is => 'ro', isa => 'Str', default => '/cpanci' );
+    has master  => ( required => 1, is => 'ro', isa => 'Str', default => '/cpanci/perl5/perlbrew/perls/master/bin/perl' );
+    has cpanm   => ( required => 1, is => 'ro', isa => 'Str', default => '/cpanci/perl5/perlbrew/perls/master/bin/cpanm');
+    has pldir   => ( required => 1, is => 'ro', isa => 'Str', default => '/cpanci/perl5/perlbrew/perls' );
+    has distdir => ( required => 1, is => 'ro', isa => 'Str', default => '/cpanci/dist' );
     has rdata   => ( required => 1, is => 'ro', isa => 'HashRef', default => sub { { } } );
 
     sub run { 
@@ -32,35 +39,58 @@ package CPANci::Installer {
 
         my ( $tfh, $tfname ) = tempfile;
 
+        say "getting $args{url} -> $tfname";
         $self->ua->get( $args{url}, ":content_file" => $tfname );
 
         my $cwd = getcwd;
         foreach my $perl ( @{ $self->perls } ) { 
-            chdir catdir $self->home, 'work', $perl;
+            my $workdir = catdir $self->home, 'work', $perl; 
+            next unless -d $workdir;
+            chdir $workdir;
+
+            say "extracting to $workdir";
             system 'tar', '-xzvf', $tfname;
+           
+            my $dist_tmp = tempdir( DIR => $self->distdir );
 
-            chdir catdir $self->home, 'work', $perl, $args{name};
-
-            $self->rdata->{deps} = $self->_install_deps( $perl );
-            print JSON::XS->new->pretty->encode( $self->rdata->{deps} );
-
-            $self->rdata->{tests} = $self->_run_tests( $perl );
-            print JSON::XS->new->pretty->encode( $self->rdata->{tests} );
+            chdir catdir $workdir, $args{name};
+            $self->rdata->{deps} = $self->_install_deps( $perl, $dist_tmp );
+            $self->rdata->{tests} = $self->_run_tests( $perl, $dist_tmp );
+            $self->_save_results( $perl, $args{name} );
 
             chdir $cwd;
         }
     }
 
+    sub _save_results { 
+        my ( $self, $perl, $dist ) = @_;
+        
+        my $db = $self->mongo->get_database( 'cpanci' );
+
+        $db->get_collection( 'deps'  )->insert( { 
+            dist  => "cpan/$dist", 
+            perl  => $perl, 
+            deps  => $self->rdata->{deps}
+        } );
+
+        $db->get_collection( 'tests' )->insert( { 
+            dist  => "cpan/$dist", 
+            perl  => $perl,
+            tests => $self->rdata->{tests}
+         } );
+    }
+
     sub _install_deps { 
-        my $self = shift;
-        my $perl = shift;
+        my ( $self, $perl, $dist_tmp ) = @_;
+
         my $plbin = catfile $self->pldir, $perl, 'bin', 'perl';
         my( $wtr, $rdr );
         my $err = gensym;
-        my $pid = open3 $wtr, $rdr, $err, $plbin, $self->cpanm, '--installdeps', '--notest', '.';
+        my $pid = open3 $wtr, $rdr, $err, $plbin, $self->cpanm, '--installdeps', '--notest', '-L', $dist_tmp, '.';
             
         my $results = $self->_read_cpanm_deps_log( $err );
 
+        
     }
 
     # implements a kinda sloppy pseudo-state machine for parsing the cpanm log
@@ -79,10 +109,11 @@ package CPANci::Installer {
                 when ( m{==> Found dependencies: (?<deps>.+)$} ) { 
                     my @dep_names = split /, /, $+{deps};
                     $deps{$_} = { } for @dep_names;
+
                     $log_line->{type} = 'found-deps';
                 }
                 when ( m{--> Working on (?<woname>.+)$} ) { 
-                    push @working_on, $+{woname};
+                    push @working_on, $+{woname} eq '.' ? 'THIS' : $+{woname};
                     $log_line->{type} = 'working-on';
                 }
                 when ( m{(?<stage>Fetching|Configuring|Building)} ) { 
@@ -114,22 +145,38 @@ package CPANci::Installer {
     }    
     
     sub _run_tests { 
-        my $self = shift;
-        my $perl = shift;
+        my ( $self, $perl, $dist_tmp ) = @_;
 
         my $plbin = catfile $self->pldir, $perl, 'bin', 'perl';
-        system $plbin, $self->cpanm, '--notest', '.';
+        system $plbin, $self->cpanm, '--notest', '-L', $dist_tmp, '.';
         my @tests = $self->_get_tests( glob "t/*" );
 
         my @results;
 
         foreach my $test( @tests ) { 
             my @test_results;
-            my $parser = TAP::Parser->new( { source => $test } );
+
+            my ( $wtr, $rdr );
+            my $err = gensym;
+
+            my $perlbin = catfile $self->pldir, $perl, 'bin', 'perl';
+            
+            my $idir = catdir $dist_tmp, 'lib', 'perl5';
+            my $pid = open3 $wtr, $rdr, $err, $perlbin, '-I', $idir, $test;
+
+            my ( $tap_out, $errors );
+
+            {
+                local $/;
+                $tap_out = readline $rdr;
+                $errors  = readline $err;
+            }
+
+            my $parser = TAP::Parser->new( { source => $tap_out } );
             while( my $result = $parser->next ) { 
                 push @test_results, 
                   { text => $result->as_string,
-                    ok   => ( $result->is_ok ? \1 : \0 ),
+                    ok   => ( $result->is_ok ? true : false ),
                     type => $result->type,
                     $result->type eq 'test' ?
                     ( number => $result->number,
@@ -139,7 +186,10 @@ package CPANci::Installer {
                   }
             }
 
-            push @results, { name => $test, lines => \@test_results };
+            push @results, { name => $test, 
+                             lines => \@test_results, 
+                             raw_err => $errors,
+                             raw_tap => $tap_out };
         }
 
         return \@results;
@@ -164,8 +214,9 @@ package CPANci::Installer {
     }
 
     sub _build_perls { 
-        return 
-          [ 'narf-5.16.2' ];
+        my $self = shift;
+
+        return [ map { $_->{version} } $self->mongo->get_database( 'cpanci' )->get_collection( 'perls' )->find->all ];
     }
 
 
