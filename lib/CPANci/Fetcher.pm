@@ -2,6 +2,7 @@ package CPANci::Fetcher {
 
     use Moose;
     use CPANci;
+    use CPANci::Installer;
     use LWP::UserAgent;
     use MongoDB;
     use XML::LibXML;
@@ -26,7 +27,8 @@ package CPANci::Fetcher {
             $u->path( 'v0' . $u->path );
             $u;
         } $xml->findnodes( '//rdf:li' );
-        
+
+        my $count = 0;
         foreach my $dist( @dists ) { 
             my ( $name ) = $dist =~ m{release/.+/(.+)$};
             my $coll = $self->mongo->get_database( 'cpanci' )->get_collection( 'dists' );
@@ -37,10 +39,25 @@ package CPANci::Fetcher {
             my $ts = strftime "[%Y-%m-%d] %H:%M:%S ", localtime;
             print $ts, "fetching metadata: $dist\n";
             my $fetched_data = decode_json $self->ua->get( $dist )->decoded_content;
-            $fetched_data->{_id} = 'cpan/' . $name;
-            $coll->insert( $fetched_data );
+
+            my %ins = ( _id => 'cpan/' . $name, fetched => DateTime->now, meta => $fetched_data );
+
+            $coll->insert( \%ins );
+
+            $self->_start_installer( $name, $fetched_data->{download_url} );
+
+            last if ++$count == 10;     # testing only
         }
     } 
+
+    sub _start_installer {
+        my ( $self, $name, $url ) = @_;
+
+        # fork and return;
+
+        CPANci::Installer->new( mongo_cfg => $self->mongo_cfg )
+            ->run( name => $name, url => $url );
+    }
 }
 
 1;

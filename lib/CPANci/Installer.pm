@@ -1,4 +1,3 @@
-
 package CPANci::Installer { 
     use Moose;
     use CPANci;
@@ -54,8 +53,12 @@ package CPANci::Installer {
             my $dist_tmp = tempdir( DIR => $self->distdir, CLEANUP => 1 );
 
             chdir catdir $workdir, $args{name};
-            $self->rdata->{deps} = $self->_install_deps( $perl, $dist_tmp );
-            $self->rdata->{tests} = $self->_run_tests( $perl, $dist_tmp );
+            $self->rdata->{deps}  = eval { $self->_install_deps( $perl, $dist_tmp ) };
+            $self->rdata->{deps}{error} =  $@ if $@;
+
+            $self->rdata->{tests} = eval { $self->_run_tests( $perl, $dist_tmp ) };
+            $self->rdata->{tests}{error} = $@ if $@;
+
             $self->_save_results( $perl, $args{name} );
 
             chdir $cwd;
