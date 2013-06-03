@@ -14,6 +14,13 @@ package CPANci::WebApp::Main {
         return $self->render;
     }
 
+    sub dist { 
+        my $self = shift;
+        my $universe = $self->stash( 'universe' );
+        my $dist = $self->stash( 'dist' );
+        return $self->render( text => "dist = $dist, universe = $universe" );
+    }
+
     # abstract this somewhere
     sub db { 
         my $self = shift;
