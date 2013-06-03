@@ -4,7 +4,11 @@
 </head>
 
 <body>
-stuff
+<ul>
+% for my $dist ( @$dists ) { 
+    <li><a href="/dist/<%= $dist->{_id} %>"><%= $dist->{_id} =~ s{cpan/}{}r %></a></li>
+% }
+</ul>
 </body>
 
 </html>
