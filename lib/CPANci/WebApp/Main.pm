@@ -7,7 +7,7 @@ package CPANci::WebApp::Main {
     sub hello { 
         my $self = shift;
 
-        return $self->render( text => 'yo, universe.' );
+        return $self->render;
     }
 
 }
