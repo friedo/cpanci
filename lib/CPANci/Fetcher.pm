@@ -46,7 +46,7 @@ package CPANci::Fetcher {
 
             $self->_start_installer( $name, $fetched_data->{download_url} );
 
-            last if ++$count == 10;     # testing only
+            # last if ++$count == 10;     # testing only
         }
     } 
 
