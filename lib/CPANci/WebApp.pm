@@ -7,7 +7,7 @@ package CPANci::WebApp {
     sub startup { 
         my $self = shift;
         $self->routes->get( '/' )->to( 'main#hello' );
-        $self->routes->get( '/dist/:universe/:dist' )->to( 'main#dist' );
+        $self->routes->get( '/dist/:universe/*dist' )->to( 'main#dist' );
     }
 }
 
