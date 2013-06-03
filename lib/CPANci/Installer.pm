@@ -90,7 +90,8 @@ package CPANci::Installer {
         my( $wtr, $rdr );
         my $err = gensym;
         my $pid = open3 $wtr, $rdr, $err, $plbin, $self->cpanm, '--installdeps', '--notest', '-L', $dist_tmp, '.';
-            
+        waitpid $pid, 0;
+    
         my $results = $self->_read_cpanm_deps_log( $err );
 
         
@@ -166,6 +167,7 @@ package CPANci::Installer {
             
             my $idir = catdir $dist_tmp, 'lib', 'perl5';
             my $pid = open3 $wtr, $rdr, $err, $perlbin, '-I', $idir, $test;
+            waitpid $pid, 0;
 
             my ( $tap_out, $errors );
 
