@@ -21,10 +21,7 @@ package CPANci::WebApp::Main {
         my $universe = $self->stash( 'universe' );
         my $dist = $self->stash( 'dist' );
 
-        # schwartzify
-        my @perls = sort { 
-            version->parse( $a->{version} =~ s/perl-//r ) <=> version->parse( $b->{version} =~ s/perl-//r ) 
-        } $self->db->get_collection( 'perls' )->find->all;
+        my @perls = $self->_get_perls;
 
         my %deps  = map { $_->{perl} => $_ } $self->db->get_collection( 'deps' )->find( { dist => "$universe/$dist" } )->all;
         my %tests = map { $_->{perl} => $_ } $self->db->get_collection( 'tests' )->find( { dist => "$universe/$dist" } )->all;
@@ -33,6 +30,30 @@ package CPANci::WebApp::Main {
 
         $self->stash( deps => \%deps, tests => \%tests, perls => \@perls, deps_tab => \%deps_tab );
         return $self->render;
+    }
+
+    sub deps { 
+        my $self = shift;
+
+        my $universe = $self->stash( 'universe' );
+        my $dist = $self->stash( 'dist' );
+
+        my @perls = $self->_get_perls;
+        my %deps  = map { $_->{perl} => $_ } $self->db->get_collection( 'deps' )->find( { dist => "$universe/$dist" } )->all;
+
+        $self->stash( deps => \%deps, perls => \@perls );
+        return $self->render;
+    }
+
+    sub _get_perls { 
+        my $self = shift;
+
+        # schwartzify
+        my @perls = sort {
+            version->parse( $a->{version} =~ s/perl-//r ) <=> version->parse( $b->{version} =~ s/perl-//r )
+        } $self->db->get_collection( 'perls' )->find->all;
+
+        return @perls;
     }
 
     # abstract this somewhere

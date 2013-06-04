@@ -1,0 +1,43 @@
+<html>
+<head>
+<title>Detailed Dependency Information: <%= $dist %></title>
+<link rel="stylesheet" type="text/css" href="/cpanci.css" />
+</head>
+
+<body>
+<h1>Dependency information for <%= $dist %></h1>
+
+% foreach my $perl ( @$perls ) { 
+<h2 id="<%= $perl->{version} %>"><%= $perl->{version} %>:</h2>
+<table class="al-table">
+    <thead>
+            <th colspan="7">Dependency Installation for <em><%= $dist %></em> 
+              (<a href="/dist/<%= $universe %>/<%= $dist %>/deps/log/<%= $perl->{version} %>">log</a>) 
+            </th>
+        </tr>
+        <tr>
+            <th>Module</th>
+            <th>Distribution</th>
+            <th>Fetch</th>
+            <th>Config</th>
+            <th>Build</th>
+            <th>Install</th>
+        </tr>
+    </thead>
+
+    <tbody>
+%     foreach my $dep ( sort keys %{ $deps->{ $perl->{version} }{deps}{deps} } ) {
+%         next if $dep eq 'THIS';
+%         my $item = $deps->{ $perl->{version} }{deps}{deps}{$dep};
+            <tr>
+                <td><%= $dep %></td>
+                <td><%= $item->{install_dist} %></td>
+                <td><%= $item->{fetch}   ? 'OK' : 'FAIL' %></td>
+                <td><%= $item->{config}  ? 'OK' : 'FAIL' %></td>
+                <td><%= $item->{build}   ? 'OK' : 'FAIL' %></td>
+                <td><%= $item->{install} ? 'OK' : 'FAIL' %></td>
+            </tr>
+%     }
+    </tbody>
+</table>
+% }

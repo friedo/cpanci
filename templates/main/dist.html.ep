@@ -58,7 +58,7 @@
     <tbody>
 % foreach my $perl ( @$perls ) { 
         <tr>
-            <td><%= $perl->{version} %></td>
+            <td><a href="/dist/<%= $universe %>/<%= $dist %>/tests#<%= $perl->{version} %>"><%= $perl->{version} %></a></td>
 %     foreach my $test ( @dist_tests ) { 
             <td><%= $test->{passed} ? 'OK' : 'FAIL' %></td>
 %     }
