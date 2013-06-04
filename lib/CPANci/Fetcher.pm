@@ -54,9 +54,12 @@ package CPANci::Fetcher {
         my ( $self, $name, $url ) = @_;
 
         # fork and return;
+        eval { 
+            CPANci::Installer->new( mongo_cfg => $self->mongo_cfg )
+                ->start( name => $name, url => $url );
+        };
 
-        CPANci::Installer->new( mongo_cfg => $self->mongo_cfg )
-            ->start( name => $name, url => $url );
+        say $@ if $@;
     }
 }
 
