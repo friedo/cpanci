@@ -31,4 +31,27 @@
         color: #339;
 }
 
+#new-uploads {
+    list-style-type: none;
+}
 
+#new-uploads li { 
+    display: block;
+    clear: both;
+    padding: 5px;
+}
+
+#new-uploads li img { 
+    float: left;
+    padding-right: 10px;
+}
+
+.nu-link { 
+     float: left;
+     font-size: 30px;
+}
+
+.nu-author { 
+    font-size: 12px;
+    color: #999999;
+}

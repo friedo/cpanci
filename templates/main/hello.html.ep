@@ -1,12 +1,21 @@
 <html>
 <head>
 <title>CPANci: Latest Uploads</title>
+<link rel="stylesheet" type="text/css" href="/cpanci.css" />
 </head>
 
+% use Gravatar::URL;
+
 <body>
-<ul>
+<h1>Latest uploads:</h1>
+<ul id="new-uploads">
 % for my $dist ( @$dists ) { 
-    <li><a href="/dist/<%= $dist->{_id} %>"><%= $dist->{_id} =~ s{cpan/}{}r %></a></li>
+    <li><div class="nu-item">
+           <img src="<%= gravatar_url( email => $dist->{meta}{author} . '@cpan.org', size => 60 ) %>" />
+           <a href="/dist/<%= $dist->{_id} %>" class="nu-link"><%= $dist->{_id} =~ s{cpan/}{}r %></a>
+           <span class="nu-author"> by <%= $dist->{meta}{author} %></span>
+         </div>
+    </li>
 % }
 </ul>
 </body>
