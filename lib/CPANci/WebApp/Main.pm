@@ -45,6 +45,19 @@ package CPANci::WebApp::Main {
         return $self->render;
     }
 
+    sub deps_log { 
+        my $self = shift;
+ 
+        my $universe = $self->stash( 'universe' );
+        my $dist = $self->stash( 'dist' );
+        my $perl = $self->stash( 'perl' );
+
+        my $log = $self->db->get_collection( 'deps' )->find_one( { dist => "$universe/$dist", perl => $perl }, { 'deps.log' => 1 } );
+        $self->stash( log => $log );
+
+        return $self->render;
+    }
+
     sub _get_perls { 
         my $self = shift;
 

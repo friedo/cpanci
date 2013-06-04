@@ -1,0 +1,27 @@
+<html>
+<head>
+<title>Detailed Dependency Information: <%= $dist %></title>
+<link rel="stylesheet" type="text/css" href="/cpanci.css" />
+</head>
+
+<body>
+<h1>Dependency installation log for <%= $dist %> on <%= $perl %></h1>
+
+<ul id="deps-log">
+% my $indent = 0;
+% foreach my $line( @{ $log->{deps}{log} } ) { 
+%     if ( $line->{indent} > $indent ) { 
+%         $indent++;
+          <ul>
+%     } elsif ( $line->{indent} < $indent ) { 
+%         $indent--;
+          </ul>
+%     }
+      <li><%= $line->{line} =~ s/^[-=<>]+\s//r %></li> 
+
+% }
+</ul>
+
+
+</body>
+</html>
