@@ -1,0 +1,72 @@
+<html>
+<head>
+<title>CPANci results for <%= $dist %></title>
+<link rel="stylesheet" type="text/css" href="/cpanci.css" />
+
+</head>
+
+<body>
+
+<h1><%= $dist %></h1>
+
+<table class="al-table">
+    <thead>
+        <tr>
+            <th colspan="7">Dependencies: <em><%= $dist %></em> (<a href="/dist/<%= $universe %>/<%= $dist %>/deps">more</a>)</th>
+        </tr>
+        <tr>
+            <th>Perl</th>
+            <th>Fetch</th>
+            <th>Config</th>
+            <th>Build</th>
+            <th>Install</th>
+        </tr>
+    </thead>
+
+    <tbody>
+% #  We don't actually collect this data for install phases on a dist level yet, so fake it for now
+% foreach my $perl( @$perls ) { 
+%     if ( exists $deps_tab->{ $perl->{version} } && exists $deps_tab->{ $perl->{version} }{THIS} ) { 
+        <tr>
+%         my $val = $deps_tab->{ $perl->{version} }{THIS}{config};
+                <td><em><a href="/dist/<%= $universe %>/<%= $dist %>/deps#<%= $perl->{version} %>"><%= $perl->{version} %></a></em></td>
+                <td><%= $val == 1 ? 'OK' : 'FAIL' %></td>
+                <td><%= $val == 1 ? 'OK' : 'FAIL' %></td>
+                <td><%= $val == 1 ? 'OK' : 'FAIL' %></td>
+                <td><%= $val == 1 ? 'OK' : 'FAIL' %></td>
+        </tr>
+%    }
+% }
+    </tbody>
+</table>
+
+% my $cur_version = 'perl-5.18.0';   # put this in a better place
+% my @dist_tests = exists $tests->{$cur_version} ? sort { $a->{name} cmp $b->{name} } @{ $tests->{$cur_version}{tests} } : ( );
+<table class="al-table">
+    <thead>
+        <tr>
+            <th colspan="<%= scalar @dist_tests + 1 %>">Tests: <em><%= $dist %></em> (<a href="/dist/<%= $universe %>/<%= $dist %>/tests">more</a>)</th>
+        </tr>
+        <tr>
+            <th></th>
+% foreach my $test ( @dist_tests ) {
+            <th><%= $test->{name} %></th> 
+% }
+        </tr>
+    </thead>
+
+    <tbody>
+% foreach my $perl ( @$perls ) { 
+        <tr>
+            <td><%= $perl->{version} %></td>
+%     foreach my $test ( @dist_tests ) { 
+            <td><%= $test->{passed} ? 'OK' : 'FAIL' %></td>
+%     }
+        </tr>
+% }
+    </tbody>
+</table>
+
+</body>
+
+</html>
