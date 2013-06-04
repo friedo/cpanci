@@ -56,7 +56,7 @@ package CPANci::Fetcher {
         # fork and return;
 
         CPANci::Installer->new( mongo_cfg => $self->mongo_cfg )
-            ->run( name => $name, url => $url );
+            ->start( name => $name, url => $url );
     }
 }
 

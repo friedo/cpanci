@@ -30,7 +30,7 @@ package CPANci::Installer {
     has distdir => ( required => 1, is => 'ro', isa => 'Str', default => '/cpanci/dist' );
     has rdata   => ( required => 1, is => 'ro', isa => 'HashRef', default => sub { { } } );
 
-    sub run { 
+    sub start { 
         my ( $self, %args ) = @_;
 
         die "no download url" unless $args{url};
@@ -50,7 +50,7 @@ package CPANci::Installer {
             say "extracting to $workdir";
             system 'tar', '-xzvf', $tfname;
            
-            my $dist_tmp = tempdir( DIR => $self->distdir );
+            my $dist_tmp = tempdir( DIR => $self->distdir, cleanup => 1 );
 
             chdir catdir $workdir, $args{name};
             $self->rdata->{deps}  = eval { $self->_install_deps( $perl, $dist_tmp ) };
@@ -59,7 +59,8 @@ package CPANci::Installer {
             $self->rdata->{tests} = eval { $self->_run_tests( $perl, $dist_tmp ) };
             $self->rdata->{tests}{error} = $@ if $@;
 
-            $self->_save_results( $perl, $args{name} );
+            eval { $self->_save_results( $perl, $args{name} ) };
+            say "save error: $@" if $@;
 
             chdir $cwd;
         }
@@ -90,11 +91,12 @@ package CPANci::Installer {
         my( $wtr, $rdr );
         my $err = gensym;
         my $pid = open3 $wtr, $rdr, $err, $plbin, $self->cpanm, '--installdeps', '--notest', '-L', $dist_tmp, '.';
-        waitpid $pid, 0;
     
         my $results = $self->_read_cpanm_deps_log( $err );
 
-        
+        waitpid $pid, 0;
+
+        return $results;
     }
 
     # implements a kinda sloppy pseudo-state machine for parsing the cpanm log
@@ -167,7 +169,6 @@ package CPANci::Installer {
             
             my $idir = catdir $dist_tmp, 'lib', 'perl5';
             my $pid = open3 $wtr, $rdr, $err, $perlbin, '-I', $idir, $test;
-            waitpid $pid, 0;
 
             my ( $tap_out, $errors );
 
@@ -177,24 +178,30 @@ package CPANci::Installer {
                 $errors  = readline $err;
             }
 
-            my $parser = TAP::Parser->new( { source => $tap_out } );
-            while( my $result = $parser->next ) { 
-                push @test_results, 
-                  { text => $result->as_string,
-                    ok   => ( $result->is_ok ? true : false ),
-                    type => $result->type,
-                    $result->type eq 'test' ?
-                    ( number => $result->number,
-                      desc   => ( $result->description =~ s/^- //r ),
-                    ) : ( ),
-                    
-                  }
-            }
+            waitpid $pid, 0;
+            my $passed = ( ( $? >> 8 ) == 0 ? true : false );
+
+            eval { 
+                my $parser = TAP::Parser->new( { source => $tap_out } );
+                while( my $result = $parser->next ) { 
+                    push @test_results, 
+                      { text => $result->as_string,
+                        ok   => ( $result->is_ok ? true : false ),
+                        type => $result->type,
+                        $result->type eq 'test' ?
+                        ( number => $result->number,
+                          desc   => ( $result->description =~ s/^- //r ),
+                        ) : ( ),    
+                      }
+                }
+            };
 
             push @results, { name => $test, 
+                             $@ ? ( error => $@ ) : ( ),
                              lines => \@test_results, 
                              raw_err => $errors,
-                             raw_tap => $tap_out };
+                             raw_tap => $tap_out,
+                             passed => $passed };
         }
 
         return \@results;
