@@ -11,6 +11,9 @@ package CPANci::Fetcher {
     use Data::Dumper;
     use POSIX;
 
+    use feature ':5.18';
+    no warnings 'experimental';
+
     with 'CPANci::Role::UA';
     with 'CPANci::Role::MongoDB';    
 
