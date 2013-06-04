@@ -50,7 +50,7 @@ package CPANci::Installer {
             say "extracting to $workdir";
             system 'tar', '-xzvf', $tfname;
            
-            my $dist_tmp = tempdir( DIR => $self->distdir, cleanup => 1 );
+            my $dist_tmp = tempdir( DIR => $self->distdir, CLEANUP => 1 );
 
             chdir catdir $workdir, $args{name};
             $self->rdata->{deps}  = eval { $self->_install_deps( $perl, $dist_tmp ) };
