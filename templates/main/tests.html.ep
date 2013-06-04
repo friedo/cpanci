@@ -1,0 +1,38 @@
+<html>
+<head>
+<title>Detailed Test Results: <%= $dist %></title>
+<link rel="stylesheet" type="text/css" href="/cpanci.css" />
+</head>
+
+<body>
+<h1>Test results for <%= $dist %> on <em><%= $perl %></em></h1>
+
+% foreach my $test ( @{ $tests->{tests} } ) { 
+    <h2 id="<%= $test->{name} %>"><%= $test->{name} %></h2>
+    <table class="al-table">
+        <thead>
+            <tr>
+                <th>Number</th>
+                <th>Description</th>
+                <th>Status 
+                  (<a href="/dist/<%= $universe %>/<%= $dist %>/rawtap/<%= $perl %>/<%= $test->{name} %>">tap</a>)
+                  (<a href="/dist/<%= $universe %>/<%= $dist %>/stderr/<%= $perl %>/<%= $test->{name} %>">err</a>)
+                </th>
+            </tr>
+        </thead>
+
+        <tbody>
+%     foreach my $line ( grep { $_->{type} eq 'test' } @{ $test->{lines} } ) { 
+          <tr>
+              <td><%= $line->{number} %></td>
+              <td><%= $line->{desc} %></td>
+              <td><%= $line->{ok} ? 'OK' : 'FAIL' %></td>
+          </tr>
+%    }
+        </tbody>
+    </table>
+
+% }
+
+</body>
+</html>

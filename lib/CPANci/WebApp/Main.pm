@@ -6,6 +6,7 @@ package CPANci::WebApp::Main {
 
     use Mojo::Base 'Mojolicious::Controller';
     use MongoDB;
+    use List::Util 'first';
 
     sub hello { 
         my $self = shift;
@@ -56,6 +57,48 @@ package CPANci::WebApp::Main {
         $self->stash( log => $log );
 
         return $self->render;
+    }
+
+    sub tests { 
+        my $self = shift;
+
+        my $universe = $self->stash( 'universe' );
+        my $dist = $self->stash( 'dist' );
+        my $perl = $self->stash( 'perl' );
+
+        my $tests = $self->db->get_collection( 'tests' )->find_one( { dist => "$universe/$dist", perl => $perl } );
+
+        $self->stash( tests => $tests );
+
+        return $self->render;
+    }
+
+    sub rawtap { 
+        my $self = shift;
+
+        my $universe = $self->stash( 'universe' );
+        my $dist = $self->stash( 'dist' );
+        my $perl = $self->stash( 'perl' );
+        my $test = $self->stash( 'test' );
+
+        my $tests = $self->db->get_collection( 'tests' )->find_one( { dist => "$universe/$dist", perl => $perl } );
+        my $tap = first { $_->{name} eq $test } @{ $tests->{tests} };
+
+        return $self->render( text => $tap->{raw_tap}, format => 'txt' );
+    }
+
+    sub stderr { 
+        my $self = shift;
+
+        my $universe = $self->stash( 'universe' );
+        my $dist = $self->stash( 'dist' );
+        my $perl = $self->stash( 'perl' );
+        my $test = $self->stash( 'test' );
+
+        my $tests = $self->db->get_collection( 'tests' )->find_one( { dist => "$universe/$dist", perl => $perl } );
+        my $tap = first { $_->{name} eq $test } @{ $tests->{tests} };
+
+        return $self->render( text => $tap->{raw_err}, format => 'txt' );
     }
 
     sub _get_perls { 

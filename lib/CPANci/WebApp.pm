@@ -10,7 +10,9 @@ package CPANci::WebApp {
         $self->routes->get( '/dist/:universe/#dist' )->to( 'main#dist' );
         $self->routes->get( '/dist/:universe/#dist/deps' )->to( 'main#deps' );
         $self->routes->get( '/dist/:universe/#dist/deps/log/#perl' )->to( 'main#deps_log' );
-        $self->routes->get( '/dist/:universe/#dist/tests' )->to( 'main#tests' );
+        $self->routes->get( '/dist/:universe/#dist/tests/#perl' )->to( 'main#tests' );
+        $self->routes->get( '/dist/:universe/#dist/rawtap/#perl/*test' )->to( 'main#rawtap' );
+        $self->routes->get( '/dist/:universe/#dist/stderr/#perl/*test' )->to( 'main#stderr' );
     }
 }
 
