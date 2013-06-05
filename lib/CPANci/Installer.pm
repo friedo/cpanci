@@ -90,7 +90,8 @@ package CPANci::Installer {
         my $plbin = catfile $self->pldir, $perl, 'bin', 'perl';
         my( $wtr, $rdr );
         my $err = gensym;
-        my $pid = open3 $wtr, $rdr, $err, $plbin, $self->cpanm, '--installdeps', '--notest', '-L', $dist_tmp, '.';
+        my $pid = open3 $wtr, $rdr, $err, $plbin, $self->cpanm, 
+            '--installdeps', '--notest', '-L', $dist_tmp, '.';
     
         my $results = $self->_read_cpanm_deps_log( $err );
 
