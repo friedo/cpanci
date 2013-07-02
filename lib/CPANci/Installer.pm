@@ -10,11 +10,9 @@ package CPANci::Installer {
     use File::Spec::Functions 'catdir', 'catfile';
     use TAP::Parser;
     use Data::Dumper;
+    use File::Path 'rmtree';
     use autodie;
     use boolean;
-
-    use strict;
-    use warnings;
     use feature ':5.18';
     no warnings 'experimental';
     
@@ -52,7 +50,9 @@ package CPANci::Installer {
            
             my $dist_tmp = tempdir( DIR => $self->distdir, CLEANUP => 1 );
 
-            chdir catdir $workdir, $args{name};
+            my $unpack_dir = catdir $workdir, $args{name};
+            chdir catdir $unpack_dir;
+
             $self->rdata->{deps}  = eval { $self->_install_deps( $perl, $dist_tmp ) };
             $self->rdata->{deps}{error} =  $@ if $@;
 
@@ -63,6 +63,8 @@ package CPANci::Installer {
             say "save error: $@" if $@;
 
             chdir $cwd;
+
+            rmtree $unpack_dir if -d $unpack_dir;
         }
     }
 

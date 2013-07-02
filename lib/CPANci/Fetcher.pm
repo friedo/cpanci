@@ -22,7 +22,9 @@ package CPANci::Fetcher {
 
     sub run {
         my $self = shift;
-        
+       
+        $self->_check_pidfile;
+ 
         my $xml = XML::LibXML->load_xml( string => $self->ua->get( $self->rss_base )->decoded_content );
         my @dists = map { 
             my $u = URI->new( $_->getAttribute( 'rdf:resource' ) );
@@ -64,6 +66,25 @@ package CPANci::Fetcher {
 
         say $@ if $@;
     }
+
+    sub _check_pidfile { 
+        my $self = shift;
+
+        my $pidfile = "/cpanci/fetcher.pid";
+        if ( -f $pidfile ) { 
+            my $pid = do {
+                open my $fh, '<', $pidfile; 
+                local $/;
+                readline $fh;
+            };
+
+            die "process $pid already running" if kill 0, $pid;
+        }
+
+        open my $pidfh, '>', $pidfile;
+        print { $pidfh } $$;
+    }
+    
 }
 
 1;
