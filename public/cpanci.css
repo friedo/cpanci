@@ -1,62 +1,111 @@
-.al-table
-{
-        font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
-        font-size: 12px;
-        margin: 45px;
-        width: 480px;
-        text-align: left;
-        border-collapse: collapse;
+body {
+	font-family: Helvetica, Arial, sans-serif;
+	line-height: 1.2em;
+	padding: 10px;
 }
-.al-table th
-{
-        font-size: 13px;
-        font-weight: normal;
-        padding: 8px;
-        background: #b9c9fe;
-        border-top: 4px solid #aabcfe;
-        border-bottom: 1px solid #fff;
-        color: #039;
+h1 {
+	margin-bottom: 30px;
 }
-.al-table td
-{
-        padding: 8px;
-        background: #e8edff;
-        border-bottom: 1px solid #fff;
-        color: #669;
-        border-top: 1px solid transparent;
+.al-table {
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	font-size: 12px;
+	margin: 45px;
+	width: 480px;
+	text-align: left;
+	border-collapse: collapse;
 }
-.al-table tr:hover td
-{
-        background: #d0dafd;
-        color: #339;
+.al-table th {
+	font-size: 13px;
+	font-weight: normal;
+	padding: 8px;
+	background: #b9c9fe;
+	border-top: 4px solid #aabcfe;
+	border-bottom: 1px solid #fff;
+	color: #039;
+}
+.al-table td {
+	padding: 8px;
+	background: #e8edff;
+	border-bottom: 1px solid #fff;
+	color: #669;
+	border-top: 1px solid transparent;
+}
+.al-table tr:hover td {
+	background: #d0dafd;
+	color: #339;
 }
 
 #new-uploads {
-    list-style-type: none;
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
 }
 
 #new-uploads li { 
-    display: block;
-    clear: both;
-    padding: 5px;
+	display: block;
+	clear: both;
+	width: 100%;
+	padding: 0;
+	float: left;
+	margin-bottom: 20px;
+  /* IE 8 */
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+
+  /* IE 5-7 */
+  filter: alpha(opacity=80);
+
+  /* Netscape */
+  -moz-opacity: 0.8;
+
+  /* Safari 1.x */
+  -khtml-opacity: 0.8;
+
+  /* Good browsers */
+  opacity: 0.8;
+
+}
+#new-uploads li:hover {
+	  /* IE 8 */
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+
+  /* IE 5-7 */
+  filter: alpha(opacity=100);
+
+  /* Netscape */
+  -moz-opacity: 1;
+
+  /* Safari 1.x */
+  -khtml-opacity: 1;
+
+  /* Good browsers */
+  opacity: 1;
 }
 
 #new-uploads li img { 
-    float: left;
-    padding-right: 10px;
+	float: left;
+	padding-right: 10px;
 }
 
 .nu-link { 
-     float: left;
-     font-size: 30px;
+	font-size: 1.3em;
+	line-height: 1.3em;
+	color: #666;
+	display: block;
+}
+
+.nu-link:hover {
+	text-decoration: none;
 }
 
 .nu-author { 
-    font-size: 12px;
-    color: #999999;
+	font-size: 12px;
+	color: #999999;
+	display: block;
 }
 
 .nu-abstract { 
-    font-size: 12px;
-    color: #999999;
+	font-size: 12px;
+	color: #999999;
+	display: block;
 }
+
