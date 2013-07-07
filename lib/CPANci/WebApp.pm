@@ -31,14 +31,14 @@ package CPANci::WebApp {
         $r->route( '/dist/:universe/#dist/rawtap/#perl/*test' )->via( 'GET' )->to( 'main#rawtap' );
         $r->route( '/dist/:universe/#dist/stderr/#perl/*test' )->via( 'GET' )->to( 'main#stderr' );
 
-        my $auth_route = $r->bridge( '/test/:universe' )->to( cb => sub { 
+        my $auth_route = $r->bridge( '/dist/:universe' )->to( cb => sub { 
             my $self = shift;
             use Data::Dumper; warn Dumper( $self->stash );
             warn "route callback; universe = " . $self->stash( 'universe' );
             return $self->check_auth( $self->stash( 'universe' ) );
         } );
 
-        $auth_route->route( '/#dist' )->via( 'GET' )->to( 'main#test' );
+        $auth_route->route( '/#dist' )->via( 'POST' )->to( 'main#test' );
 
         $self->helper( check_auth => sub { 
             my ( $self, $universe ) = @_;
