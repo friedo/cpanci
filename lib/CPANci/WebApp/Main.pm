@@ -103,7 +103,7 @@ package CPANci::WebApp::Main {
 
     sub test {
         my $self = shift; 
-        return $self->render( text => "test!" );
+        return $self->render( text => "you are posting dist " . $self->stash( "dist" ) );
     }
 
     sub _get_perls { 

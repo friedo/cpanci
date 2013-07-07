@@ -21,20 +21,24 @@ package CPANci::WebApp {
 
         $self->plugin( 'BasicAuth' );
 
-        $self->routes->get( '/' )->to( 'main#hello' );
-        $self->routes->get( '/dist/:universe/#dist' )->to( 'main#dist' );
-        $self->routes->get( '/dist/:universe/#dist/deps' )->to( 'main#deps' );
-        $self->routes->get( '/dist/:universe/#dist/deps/log/#perl' )->to( 'main#deps_log' );
-        $self->routes->get( '/dist/:universe/#dist/tests/#perl' )->to( 'main#tests' );
-        $self->routes->get( '/dist/:universe/#dist/rawtap/#perl/*test' )->to( 'main#rawtap' );
-        $self->routes->get( '/dist/:universe/#dist/stderr/#perl/*test' )->to( 'main#stderr' );
+        my $r = $self->routes;
 
-        my $auth_route = $self->routes->bridge( '/narf/:universe/test' )->to( cb => sub { 
-            my $self = shift; 
+        $r->route( '/' )->via( 'GET' )->to( 'main#hello' );
+        $r->route( '/dist/:universe/#dist' )->via( 'GET' )->to( 'main#dist' );
+        $r->route( '/dist/:universe/#dist/deps' )->via( 'GET' )->to( 'main#deps' );
+        $r->route( '/dist/:universe/#dist/deps/log/#perl' )->via( 'GET' )->to( 'main#deps_log' );
+        $r->route( '/dist/:universe/#dist/tests/#perl' )->via( 'GET' )->to( 'main#tests' );
+        $r->route( '/dist/:universe/#dist/rawtap/#perl/*test' )->via( 'GET' )->to( 'main#rawtap' );
+        $r->route( '/dist/:universe/#dist/stderr/#perl/*test' )->via( 'GET' )->to( 'main#stderr' );
+
+        my $auth_route = $r->bridge( '/test/:universe' )->to( cb => sub { 
+            my $self = shift;
+            use Data::Dumper; warn Dumper( $self->stash );
+            warn "route callback; universe = " . $self->stash( 'universe' );
             return $self->check_auth( $self->stash( 'universe' ) );
         } );
 
-        $auth_route->get->to( 'main#test' );
+        $auth_route->route( '/#dist' )->via( 'GET' )->to( 'main#test' );
 
         $self->helper( check_auth => sub { 
             my ( $self, $universe ) = @_;
