@@ -101,6 +101,11 @@ package CPANci::WebApp::Main {
         return $self->render( text => $tap->{raw_err}, format => 'txt' );
     }
 
+    sub test {
+        my $self = shift; 
+        return $self->render( text => "test!" );
+    }
+
     sub _get_perls { 
         my $self = shift;
 
