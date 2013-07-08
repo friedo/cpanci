@@ -22,26 +22,26 @@ package CPANci::WebApp {
         $self->plugin( 'BasicAuth' );
 
         my $r  = $self->routes;
-        my $gr = $r->bridge( '/dist/:universe' )->via( 'GET' );
-        my $pr = $r->bridge( '/dist/:universe' )->via( 'POST' )->to( cb => sub {
-            my $self = shift;
-            return $self->check_auth( $self->stash( 'universe' ) );
-        } );
+        my $getr  = $r->bridge( '/dist/:universe' )->via( 'GET' );
+        my $postr = $r->bridge( '/dist/:universe' )->via( 'POST' ) ->to( cb => sub { shift->check_auth } );
+        my $putr  = $r->bridge( '/dist/:universe' )->via( 'PUT' )  ->to( cb => sub { shift->check_auth } );
 
         # public routes
-        $r->route( '/' )                          ->to( controller => 'main', action => 'hello' );
-        $gr->route( '/#dist' )                    ->to( controller => 'main', action => 'dist' );
-        $gr->route( '/#dist/deps' )               ->to( controller => 'main', action => 'deps' );
-        $gr->route( '/#dist/deps/log/#perl' )     ->to( controller => 'main', action => 'deps_log' );
-        $gr->route( '/#dist/tests/#perl' )        ->to( controller => 'main', action => 'tests' );
-        $gr->route( '/#dist/rawtap/#perl/*test' ) ->to( controller => 'main', action => 'rawtap' );
-        $gr->route( '/#dist/stderr/#perl/*test' ) ->to( controller => 'main', action => 'stderr' );
+        $r->route( '/' )                            ->to( controller => 'main', action => 'hello' );
+        $getr->route( '/#dist' )                    ->to( controller => 'main', action => 'dist' );
+        $getr->route( '/#dist/deps' )               ->to( controller => 'main', action => 'deps' );
+        $getr->route( '/#dist/deps/log/#perl' )     ->to( controller => 'main', action => 'deps_log' );
+        $getr->route( '/#dist/tests/#perl' )        ->to( controller => 'main', action => 'tests' );
+        $getr->route( '/#dist/rawtap/#perl/*test' ) ->to( controller => 'main', action => 'rawtap' );
+        $getr->route( '/#dist/stderr/#perl/*test' ) ->to( controller => 'main', action => 'stderr' );
 
         # authenticated routes
-        $pr->route( '/#dist' )                    ->to( controller => 'main', action => 'test' );
+        $putr->route( '/#dist' )                    ->to( controller => 'main', action => 'test' );
 
         $self->helper( check_auth => sub { 
-            my ( $self, $universe ) = @_;
+            my ( $self ) = @_;
+            my $universe = $self->stash( 'universe' );
+
             return 1 if $self->basic_auth( 
                 $universe => sub {
                     my ( $username, $password ) = @_; 
