@@ -36,7 +36,7 @@ package CPANci::WebApp {
         $getr->route( '/#dist/stderr/#perl/*test' ) ->to( controller => 'main', action => 'stderr' );
 
         # authenticated routes
-        $putr->route( '/#dist' )                    ->to( controller => 'main', action => 'test' );
+        $putr->route( '/#dist' )                    ->to( controller => 'main', action => 'create_dist' );
 
         $self->helper( check_auth => sub { 
             my ( $self ) = @_;

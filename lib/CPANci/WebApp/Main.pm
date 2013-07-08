@@ -117,11 +117,6 @@ package CPANci::WebApp::Main {
         return @perls;
     }
 
-    # abstract this somewhere
-    sub db { 
-        my $self = shift;
-        return MongoDB::MongoClient->new->get_database( 'cpanci' );
-    }
 }
 
 1;
