@@ -1,4 +1,6 @@
+*~
 .*
+/cpanci-*
+conf.json
 perl5
 work
-conf.json
