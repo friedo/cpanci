@@ -1,9 +1,10 @@
 #!/usr/bin/env perl
 
+# PODNAME: receiver
+
 use strict;
 use warnings;
 
 use lib './lib';
 
 use CPANci::Receiver;
-
