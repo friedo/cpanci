@@ -1,4 +1,6 @@
-package CPANci { 
+package CPANci {
+
+# ABSTRACT: Continuous Integration for CPAN
 
     use strict;
     use warnings;
