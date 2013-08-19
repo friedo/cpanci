@@ -1,0 +1,4 @@
+// Sample configuration file for fetcher. Put in $HOME/conf.json
+{
+    "mongodb": {}
+}

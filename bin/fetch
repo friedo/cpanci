@@ -1,14 +1,15 @@
 #!/usr/bin/env perl
 
+# PODNAME: fetch
+
 use strict;
 use warnings;
 use lib './lib';
 
 use CPANci::Fetcher;
 
-CPANci::Fetcher->new( 
+CPANci::Fetcher->new(
     rss_base      => 'https://metacpan.org/feed/recent',
     api_base      => 'http://api.metacpan.org/v0',
     mongo_cfg     => { }
 )->run;
-
