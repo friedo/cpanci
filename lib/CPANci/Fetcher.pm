@@ -36,7 +36,7 @@ package CPANci::Fetcher {
         my $count = 0;
         foreach my $dist( @dists ) {
             my ( $name ) = $dist =~ m{release/.+/(.+)$};
-            my $coll = $self->mongo->get_database( 'cpanci' )->get_collection( 'dists' );
+            my $coll = $self->mongo->get_collection( 'dists' );
             my $data = $coll->find_one( { _id => 'cpan/' . $name } );
 
             next if $data;
@@ -45,11 +45,11 @@ package CPANci::Fetcher {
             print $ts, "fetching metadata: $dist\n";
             my $fetched_data = decode_json $self->ua->get( $dist )->decoded_content;
 
-            my %ins = ( _id => 'cpan/' . $name, fetched => DateTime->now, meta => $fetched_data );
+            my %ins = %$fetched_data;
+            $ins{_id} = 'cpan/' . $name;
+            $ins{CPANci} = { fetched => DateTime->now };
 
             $coll->insert( \%ins );
-
-            $self->_start_installer( $name, $fetched_data->{download_url} );
 
             # last if ++$count == 10;     # testing only
         }
